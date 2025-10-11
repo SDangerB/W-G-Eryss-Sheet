@@ -1,0 +1,1294 @@
+<script>
+    let currentArmor = null;
+    let currentShield = null;
+    let baseDefense = 3;
+    let baseSpeed = 6;
+
+    function changeWounds(delta) {
+        const currentEl = document.getElementById('wounds-current');
+        const maxEl = document.getElementById('wounds-max');
+        let current = parseInt(currentEl.textContent);
+        const max = parseInt(maxEl.textContent);
+        
+        current = Math.max(0, Math.min(max, current + delta));
+        currentEl.textContent = current;
+    }
+
+    function changeShock(delta) {
+        const currentEl = document.getElementById('shock-current');
+        const maxEl = document.getElementById('shock-max');
+        let current = parseInt(currentEl.textContent);
+        const max = parseInt(maxEl.textContent);
+        
+        current = Math.max(0, Math.min(max, current + delta));
+        currentEl.textContent = current;
+    }
+
+    function changeWrath(delta) {
+        const currentEl = document.getElementById('wrath-current');
+        const maxEl = document.getElementById('wrath-max');
+        let current = parseInt(currentEl.textContent);
+        const max = parseInt(maxEl.textContent);
+        
+        current = Math.max(0, Math.min(max, current + delta));
+        currentEl.textContent = current;
+    }
+
+    function changeGlory(delta) {
+        const currentEl = document.getElementById('glory-current');
+        const maxEl = document.getElementById('glory-max');
+        let current = parseInt(currentEl.textContent);
+        const max = parseInt(maxEl.textContent);
+        
+        current = Math.max(0, Math.min(max, current + delta));
+        currentEl.textContent = current;
+    }
+
+    function changeFaith(delta) {
+        const currentEl = document.getElementById('faith-current');
+        const maxEl = document.getElementById('faith-max');
+        let current = parseInt(currentEl.textContent);
+        const max = parseInt(maxEl.textContent);
+        
+        current = Math.max(0, Math.min(max, current + delta));
+        currentEl.textContent = current;
+    }
+
+    function updateDefenseDisplay() {
+        const defenseDisplay = document.getElementById('defense-display');
+        const defenseNote = document.getElementById('defense-note');
+        
+        let totalDefense = baseDefense;
+        let noteText = '';
+        
+        // Get armor values
+        let armorValue = 0;
+        let armorName = '';
+        if (currentArmor === 'sorotias') {
+            armorValue = 5;
+            armorName = 'Sorotias Power Armor';
+        } else if (currentArmor === 'bodyglove') {
+            armorValue = 2;
+            armorName = 'Bodyglove';
+        }
+        
+        // Get shield values
+        let shieldValue = 0;
+        let shieldName = '';
+        if (currentShield === 'placeholder1') {
+            shieldValue = 1;
+            shieldName = 'Placeholder Shield';
+        } else if (currentShield === 'placeholder2') {
+            shieldValue = 3;
+            shieldName = 'Second Placeholder Shield';
+        }
+        
+        totalDefense += armorValue + shieldValue;
+        
+        // Build note text
+        if (currentArmor && currentShield) {
+            noteText = armorName + ' + ' + shieldName + ' equipped';
+        } else if (currentArmor) {
+            noteText = armorName + ' equipped';
+        } else if (currentShield) {
+            noteText = shieldName + ' equipped';
+        } else {
+            noteText = 'No armor/shield equipped';
+        }
+        
+        defenseDisplay.textContent = totalDefense;
+        defenseNote.textContent = noteText;
+    }
+
+    function toggleArmor(armorId, armorValue) {
+        const btn = document.getElementById('armor-' + armorId);
+        const forceSwordDamage = document.getElementById('force-sword-damage');
+        const wrapper = document.getElementById('force-sword-damage-wrapper');
+
+        // Deactivate all armor buttons
+        document.querySelectorAll('[id^="armor-"]').forEach(button => {
+            button.classList.remove('active');
+            button.textContent = 'Equip';
+        });
+
+        if (currentArmor === armorId) {
+            // Unequip
+            currentArmor = null;
+            forceSwordDamage.textContent = '13';
+            forceSwordDamage.classList.remove('upgraded-damage');
+
+            // Remove tooltip behavior entirely
+            if (wrapper) {
+                wrapper.classList.remove('tooltip');
+                const existingTooltip = wrapper.querySelector('.tooltiptext');
+                if (existingTooltip) existingTooltip.remove();
+            }
+        } else {
+            // Equip new armor
+            currentArmor = armorId;
+            btn.classList.add('active');
+            btn.textContent = 'Equipped';
+
+            if (armorId === 'sorotias') {
+                forceSwordDamage.textContent = '15';
+                forceSwordDamage.classList.add('upgraded-damage');
+
+                if (wrapper) {
+                    wrapper.classList.add('tooltip');
+
+                    // Create tooltip text if it doesn't exist
+                    let tooltip = wrapper.querySelector('.tooltiptext');
+                    if (!tooltip) {
+                        tooltip = document.createElement('span');
+                        tooltip.classList.add('tooltiptext');
+                        wrapper.appendChild(tooltip);
+                    }
+                    tooltip.textContent = "Damage increased by Sorotias armor's Strength enhancement.";
+                }
+            } else {
+                // Any other armor - ensure tooltip removed
+                forceSwordDamage.textContent = '13';
+                forceSwordDamage.classList.remove('upgraded-damage');
+
+                if (wrapper) {
+                    wrapper.classList.remove('tooltip');
+                    const existingTooltip = wrapper.querySelector('.tooltiptext');
+                    if (existingTooltip) existingTooltip.remove();
+                }
+            }
+        }
+
+        updateDefenseDisplay();
+    }
+
+    function toggleShield(shieldId, shieldArmor, bulkPenalty) {
+        const btn = document.getElementById('shield-' + shieldId);
+        const speedDisplay = document.getElementById('speed-display');
+        const speedNote = document.getElementById('speed-note');
+        
+        // Deactivate all shield buttons
+        document.querySelectorAll('[id^="shield-"]').forEach(button => {
+            button.classList.remove('active');
+            button.textContent = 'Equip';
+        });
+        
+        if (currentShield === shieldId) {
+            // Unequip
+            currentShield = null;
+            speedDisplay.textContent = baseSpeed;
+            speedNote.textContent = 'No shield equipped';
+        } else {
+            // Equip new shield
+            currentShield = shieldId;
+            btn.classList.add('active');
+            btn.textContent = 'Equipped';
+            speedDisplay.textContent = baseSpeed - bulkPenalty;
+            
+            if (shieldId === 'placeholder1') {
+                speedNote.textContent = 'Placeholder Shield equipped';
+            } else if (shieldId === 'placeholder2') {
+                speedNote.textContent = 'Second Placeholder Shield equipped';
+            }
+        }
+        
+        updateDefenseDisplay();
+    }
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arch-Predator Lyraze Baela Eryss</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a0033 0%, #330066 100%);
+        color: #e0e0e0;
+        padding: 20px;
+        line-height: 1.6;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(153, 51, 204, 0.5);
+    }
+    
+    .header {
+        text-align: center;
+        border-bottom: 3px solid #9933cc;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .header h1 {
+        color: #ff66ff;
+        font-size: 2em;
+        margin-bottom: 10px;
+        text-shadow: 0 0 10px rgba(255, 102, 255, 0.5);
+    }
+    
+    .header h2 {
+        color: #cc99ff;
+        font-size: 1.3em;
+        margin: 5px 0;
+    }
+    
+    .header p {
+        color: #b3b3ff;
+        margin: 5px 0;
+    }
+    
+    .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: rgba(51, 0, 102, 0.3);
+        border-radius: 8px;
+        border-left: 4px solid #9933cc;
+    }
+    
+    .section-title {
+        color: #ff66ff;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #6633cc;
+        padding-bottom: 10px;
+    }
+    
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .stat-box {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 12px;
+        border-radius: 5px;
+        border: 1px solid #6633cc;
+        text-align: center;
+    }
+    
+    .stat-label {
+        color: #cc99ff;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        color: #ffffff;
+        font-size: 1.3em;
+        font-weight: bold;
+    }
+    
+    .stat-note {
+        color: #9999cc;
+        font-size: 0.8em;
+        margin-top: 3px;
+    }
+    
+    .counter-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .counter-btn {
+        background: #6633cc;
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+    
+    .counter-btn:hover {
+        background: #9933cc;
+    }
+    
+    .counter-btn:active {
+        background: #4d2699;
+    }
+    
+    .skill-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .skill-row {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        border-left: 3px solid #6633cc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .skill-row.tooltip {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+    
+    .skill-name {
+        color: #cc99ff;
+        font-weight: bold;
+    }
+    
+    .skill-values {
+        color: #ffffff;
+        text-align: right;
+    }
+    
+    .skill-values.underlined {
+        text-decoration: underline;
+        cursor: help;
+    }
+    
+    .skill-value-bold {
+        font-weight: bold;
+    }
+    
+    .weapon-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        overflow-x: auto;
+        display: block;
+    }
+    
+    .weapon-table table {
+        width: 100%;
+        min-width: 600px;
+    }
+    
+    .weapon-table th {
+        background: #6633cc;
+        color: white;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #4d2699;
+    }
+    
+    .weapon-table th:nth-child(2),
+    .weapon-table th:nth-child(3),
+    .weapon-table th:nth-child(4),
+    .weapon-table th:nth-child(5) {
+        text-align: center;
+    }
+    
+    .weapon-table td {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border: 1px solid #6633cc;
+        color: #e0e0e0;
+    }
+    
+    .weapon-table td:nth-child(2),
+    .weapon-table td:nth-child(3),
+    .weapon-table td:nth-child(4),
+    .weapon-table td:nth-child(5) {
+        text-align: center;
+    }
+    
+    .weapon-name {
+        color: #ff66ff;
+        font-weight: bold;
+    }
+    
+    .trait {
+        color: #99ccff;
+        cursor: help;
+        text-decoration: underline dotted;
+    }
+    
+    .underline-trait {
+        text-decoration: underline;
+        cursor: help;
+    }
+    
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 300px;
+        background-color: #1a0033;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -150px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 2px solid #9933cc;
+        font-size: 0.9em;
+        line-height: 1.4;
+    }
+    
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    .equipment-item {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border-left: 3px solid #6633cc;
+    }
+    
+    .equipment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .equipment-name {
+        color: #ff66ff;
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    
+    .equipment-description {
+        color: #b3b3ff;
+        margin-top: 5px;
+    }
+    
+    .toggle-btn {
+        background: #4d2699;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    
+    .toggle-btn:hover {
+        background: #6633cc;
+    }
+    
+    .toggle-btn.active {
+        background: #ff66ff;
+        box-shadow: 0 0 10px rgba(255, 102, 255, 0.5);
+    }
+    
+    .talent-item, .mutation-item, .power-item, .gift-item, .archetype-item {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border-left: 3px solid #6633cc;
+    }
+    
+    .item-title {
+        color: #ff66ff;
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 8px;
+    }
+    
+    .item-meta {
+        color: #99ccff;
+        font-size: 0.9em;
+        margin-bottom: 8px;
+    }
+    
+    .item-description {
+        color: #e0e0e0;
+    }
+    
+    .strikethrough {
+        text-decoration: line-through;
+        color: #666;
+    }
+    
+    .upgraded-damage {
+        color: #66ff66;
+    }
+    
+    .note-box {
+        background: rgba(255, 153, 51, 0.2);
+        border: 1px solid #ff9933;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        color: #ffcc99;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding: 15px;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+        }
+        
+        .stat-grid {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .skill-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .tooltip .tooltiptext {
+            width: 250px;
+            margin-left: -125px;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Arch-Predator Lyraze Baela Eryss</h1>
+        <h2>Dread-Captain of the Shattercoil</h2>
+        <h2>Champion of Slaanesh-Daemon Lylathia</h2>
+        <p><strong>Tier 4, Rank 4</strong></p>
+        <p><strong>Keywords:</strong> Scum, Heartbreaker Fleet, Chaos, Slaanesh, Psyker</p>
+        <p><strong>Languages:</strong> Low Gothic, High Gothic, Tau, Binary Burst</p>
+    </div>
+
+    <!-- ATTRIBUTES -->
+    <div class="section">
+        <h3 class="section-title">Attributes</h3>
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="stat-label">Strength</div>
+                <div class="stat-value">3</div>
+                <div class="stat-note">(5 in Sorotias Armor)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Toughness</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Agility</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Initiative</div>
+                <div class="stat-value">4</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Willpower</div>
+                <div class="stat-value">6</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Intellect</div>
+                <div class="stat-value">4</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Fellowship</div>
+                <div class="stat-value">6</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Wrath</div>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="changeWrath(-1)">-</button>
+                    <div class="stat-value"><span id="wrath-current">2</span>/<span id="wrath-max">2</span></div>
+                    <button class="counter-btn" onclick="changeWrath(1)">+</button>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Glory</div>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="changeGlory(-1)">-</button>
+                    <div class="stat-value"><span id="glory-current">0</span>/<span id="glory-max">6</span></div>
+                    <button class="counter-btn" onclick="changeGlory(1)">+</button>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Faith</div>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="changeFaith(-1)">-</button>
+                    <div class="stat-value"><span id="faith-current">3</span>/<span id="faith-max">3</span></div>
+                    <button class="counter-btn" onclick="changeFaith(1)">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRAITS -->
+    <div class="section">
+        <h3 class="section-title">Traits</h3>
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="stat-label">Defense</div>
+                <div class="stat-value" id="defense-display">3</div>
+                <div class="stat-note" id="defense-note">No armor/shield equipped</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Resilience</div>
+                <div class="stat-value">4</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Determination</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Wounds</div>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="changeWounds(-1)">-</button>
+                    <div class="stat-value"><span id="wounds-current">0</span>/<span id="wounds-max">9</span></div>
+                    <button class="counter-btn" onclick="changeWounds(1)">+</button>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Shock</div>
+                <div class="counter-box">
+                    <button class="counter-btn" onclick="changeShock(-1)">-</button>
+                    <div class="stat-value"><span id="shock-current">0</span>/<span id="shock-max">8</span></div>
+                    <button class="counter-btn" onclick="changeShock(1)">+</button>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Speed</div>
+                <div class="stat-value" id="speed-display">6</div>
+                <div class="stat-note" id="speed-note">No shield equipped</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Conviction</div>
+                <div class="stat-value">6</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Resolve</div>
+                <div class="stat-value">5</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label tooltip">Corruption
+                    <span class="tooltiptext">+10 Engine of Carnage<br>+1 Eye of the Deep</span>
+                </div>
+                <div class="stat-value">11</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Passive Awareness</div>
+                <div class="stat-value">4</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Influence</div>
+                <div class="stat-value">9</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label tooltip">Wealth
+                    <span class="tooltiptext">+1 Background<br>+8 Looted Sunken City<br>-1 Placeholder</span>
+                </div>
+                <div class="stat-value">11</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section">
+        <h3 class="section-title">Skills</h3>
+        <div class="skill-grid">
+            <div class="skill-row">
+                <span class="skill-name">Athletics</span>
+                <span class="skill-values">3 | Str | <span class="skill-value-bold">6/8</span></span>
+                <span class="tooltiptext">+2 when Power Armor is equipped.</span>
+            </div>
+            <div class="skill-row tooltip">
+                <span class="skill-name">Awareness</span>
+                <span class="skill-values">3 | Int | <span class="skill-value-bold underlined">7/11/13</span></span>
+                <span class="tooltiptext">+4 when involving Placeholder (Lylathia's Champion Archetype)<br>+6 when involving Touch (Gossamer Flesh Mutation)</span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Ballistic Skill</span>
+                <span class="skill-values">5 | Agi | <span class="skill-value-bold">8</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Cunning</span>
+                <span class="skill-values">4 | Fel | <span class="skill-value-bold">10</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Deception</span>
+                <span class="skill-values">3 | Fel | <span class="skill-value-bold">9</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Insight</span>
+                <span class="skill-values">3 | Fel | <span class="skill-value-bold">9</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Intimidation</span>
+                <span class="skill-values">2 | Wil | <span class="skill-value-bold">8</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Investigation</span>
+                <span class="skill-values">3 | Int | <span class="skill-value-bold">7</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Leadership</span>
+                <span class="skill-values">4 | Wil | <span class="skill-value-bold">10</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Medicae</span>
+                <span class="skill-values">2 | Int | <span class="skill-value-bold">6</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Persuasion</span>
+                <span class="skill-values">4 | Fel | <span class="skill-value-bold">10</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Pilot</span>
+                <span class="skill-values">2 | Agi | <span class="skill-value-bold">5</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Psychic Mastery</span>
+                <span class="skill-values">5 | Wil | <span class="skill-value-bold">11</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Scholar</span>
+                <span class="skill-values">2 | Int | <span class="skill-value-bold">6</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Stealth</span>
+                <span class="skill-values">2 | Agi | <span class="skill-value-bold">5</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Survival</span>
+                <span class="skill-values">0 | Wil | <span class="skill-value-bold">6</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Tech</span>
+                <span class="skill-values">1 | Int | <span class="skill-value-bold">5</span></span>
+            </div>
+            <div class="skill-row">
+                <span class="skill-name">Weapon Skill</span>
+                <span class="skill-values">2 | Ini | <span class="skill-value-bold">5</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- WARGEAR - WEAPONS -->
+    <div class="section">
+        <h3 class="section-title">Wargear - Weapons</h3>
+        <div class="note-box">
+            <strong>All attacks have the <span class="tooltip underline-trait">Agonizing<span class="tooltiptext">Attacks also deal as much Shock as Wounds taken. Granted by the Sweet Agony gift.</span></span> trait.</strong>
+        </div>
+        <div class="weapon-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Weapon</th>
+                        <th>Range</th>
+                        <th>Damage</th>
+                        <th>AP</th>
+                        <th>Salvo</th>
+                        <th>Traits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="weapon-name">Plasma Pistol</td>
+                        <td>6/12/18</td>
+                        <td>15+1</td>
+                        <td>-3</td>
+                        <td>1</td>
+                        <td>
+                            <span class="trait tooltip">Pistol
+                                <span class="tooltiptext">Pistols can be fired when Engaged with a +2 DN.</span>
+                            </span>, 
+                            <span class="trait tooltip">Supercharge
+                                <span class="tooltiptext">When fired in supercharge mode, add +2 ED but suffer 1d6 Mortal Wounds on a Complication.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Inferno Pistol</td>
+                        <td>3/6/9</td>
+                        <td>16+1</td>
+                        <td>-4</td>
+                        <td>1</td>
+                        <td>
+                            <span class="trait tooltip">Pistol
+                                <span class="tooltiptext">Pistols can be fired when Engaged with a +2 DN.</span>
+                            </span>, 
+                            <span class="trait tooltip">Melta
+                                <span class="tooltiptext">Add +1 to ED results in short range, or +3 to ED results in short range against vehicles or fortifications.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Handcannon</td>
+                        <td>6/12/18</td>
+                        <td>9+1</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>
+                            <span class="trait tooltip">Pistol
+                                <span class="tooltiptext">Pistols can be fired when Engaged with a +2 DN.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Longshot Pulse Rifle</td>
+                        <td>24/48/72</td>
+                        <td>12+2</td>
+                        <td>-2</td>
+                        <td>2</td>
+                        <td>
+                            <span class="trait tooltip">Rapid Fire(2)
+                                <span class="tooltiptext">This weapon deals +2 ED at short range.</span>
+                            </span>, 
+                            <span class="trait tooltip">Sniper(2)
+                                <span class="tooltiptext">When you Aim with a Sniper weapon you gain an additional +1 bonus die to the attack, and gain +2 ED.</span>
+                            </span>, 
+                            <span class="trait tooltip">Reliable
+                                <span class="tooltiptext">Ignore the first complication with the weapon per scene.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Tau Rail Rifle</td>
+                        <td>15/30/45</td>
+                        <td>16+2</td>
+                        <td>-4</td>
+                        <td>1</td>
+                        <td>
+                            <span class="trait tooltip">Sniper(2)
+                                <span class="tooltiptext">When you Aim with a Sniper weapon you gain an additional +1 bonus die to the attack, and gain +2 ED.</span>
+                            </span>, 
+                            <span class="trait tooltip">Reliable
+                                <span class="tooltiptext">Ignore the first complication with the weapon per scene.</span>
+                            </span>, 
+                            <span class="trait tooltip">Heavy(6)
+                                <span class="tooltiptext">Get +2 DN to shoot if you have less than 6 Strength, and rolling a complication knocks you prone. Taking a Brace movement action negates the heavy trait.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Force Sword</td>
+                        <td>Melee</td>
+                        <td>
+                            <span id="force-sword-damage-wrapper">
+                                <span id="force-sword-damage">13</span>+4
+                            </span>
+                        </td>
+                        <td>-3</td>
+                        <td>-</td>
+                        <td>
+                            <span class="trait tooltip">Force
+                                <span class="tooltiptext">Psykers add half your Wil rating to the damage; Already factored in.</span>
+                            </span>, 
+                            <span class="trait tooltip">Parry
+                                <span class="tooltiptext">Gain +1 Defense against melee attacks while wielding a Parry weapon.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                    <tr>                    
+                        <td class="weapon-name">Frag Grenade</td>
+                        <td>Str × 4</td>
+                        <td>10+4</td>
+                        <td>0</td>
+                        <td>-</td>
+                        <td>
+                            <span class="trait tooltip">Blast(Medium)
+                                <span class="tooltiptext">Target a point (DN 3) and deal damage to anyone in the blast radius. Can't shift for damage.</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Plasma Grenade</td>
+                        <td>Str × 4</td>
+                        <td>10+5</td>
+                        <td>-1</td>
+                        <td>-</td>
+                        <td>
+                            <span class="trait tooltip">Blast(Medium)
+                                <span class="tooltiptext">Target a point (DN 3) and deal damage to anyone in the blast radius. Can't shift for damage.</span>
+                            </span>
+                            <br><strong>Note: Only a handful remaining; No resupplies.</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Shock Grenade</td>
+                        <td>Str × 4</td>
+                        <td>3+4</td>
+                        <td>0</td>
+                        <td>-</td>
+                        <td>
+                            <span class="trait tooltip">Blast(6)
+                                <span class="tooltiptext">Target a point (DN 3) and deal damage to anyone in the blast radius. Can't shift for damage.</span>
+                            </span>, 
+                            <span class="trait tooltip">Inflict Blinded 1
+                                <span class="tooltiptext">Suffer +4 DN to vision-based rolls until the end of their next turn.</span>
+                            </span>, 
+                            <span class="trait tooltip">Inflict Vulnerable 1
+                                <span class="tooltiptext">Inflict -1 to defense until the end of their next turn.</span>
+                            </span>
+                            <br><strong>Note: Deals Shock damage instead of Wounds.</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="weapon-name">Smoke Grenade</td>
+                        <td>Str × 4</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>
+                            <span class="trait tooltip">Blast(Large)
+                                <span class="tooltiptext">Target a point (DN 3) and deal damage to anyone in the blast radius. Can't shift for damage.</span>
+                            </span>
+                            <br><strong>Note: Seeing and firing through smoke suffers +4 DN. The DN penalty reduces by 1 each round.</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- WARGEAR - EQUIPMENT -->
+    <div class="section">
+        <h3 class="section-title">Wargear - Equipment</h3>
+        
+        <h4 style="color: #cc99ff; margin: 20px 0 10px 0;">Armor</h4>
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Sorotias Power Armor - Armor 5</span>
+                <button class="toggle-btn" id="armor-sorotias" onclick="toggleArmor('sorotias', 5)">Equip</button>
+            </div>
+            <div class="equipment-description">
+                Sister of Battle armor, disgraced and customized heavily. It has been covered in fabrics, chains, and paints that obfuscate the fact it was taken from a Sister's corpse. Enhances +2 Strength.
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Bodyglove - Armor 2</span>
+                <button class="toggle-btn" id="armor-bodyglove" onclick="toggleArmor('bodyglove', 2)">Equip</button>
+            </div>
+            <div class="equipment-description">
+                Armored bodysuit.
+            </div>
+        </div>
+
+        <h4 style="color: #cc99ff; margin: 20px 0 10px 0;">Shields</h4>
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Placeholder Shield - Armor 1</span>
+                <button class="toggle-btn" id="shield-placeholder1" onclick="toggleShield('placeholder1', 1, 0)">Equip</button>
+            </div>
+            <div class="equipment-description">
+                Placeholder, will be replaced
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Second Placeholder Shield - Armor 3</span>
+                <button class="toggle-btn" id="shield-placeholder2" onclick="toggleShield('placeholder2', 3, 0)">Equip</button>
+            </div>
+            <div class="equipment-description">
+                Placeholder, will be replaced
+            </div>
+        </div>
+
+        <h4 style="color: #cc99ff; margin: 20px 0 10px 0;">Other Equipment</h4>
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Shattercoil</span>
+            </div>
+            <div class="equipment-description">
+                Pirate frigate.
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Imperial Trade Charter</span>
+            </div>
+            <div class="equipment-description">
+                Legal document identifying the bearer as an Imperial cargo-merchant.
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Tau Privateer Badge</span>
+            </div>
+            <div class="equipment-description">
+                Proof the bearer is a recognized mercenary for the Tau Empire. Grants +1 to Leadership and Intimidation tests with anyone who would respect the position.
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Witchbrand</span>
+            </div>
+            <div class="equipment-description">
+                Proof the bearer is loyal to Lylathia, visible only to her devoted. Grants +1 to Leadership and Intimidation tests with anyone who would respect the position.
+            </div>
+        </div>
+        
+        <div class="equipment-item">
+            <div class="equipment-header">
+                <span class="equipment-name">Icedrake-hide Cape</span>
+            </div>
+            <div class="equipment-description">
+                DRIP
+            </div>
+        </div>
+    </div>
+
+    <!-- ARCHETYPES -->
+    <div class="section">
+        <h3 class="section-title">Archetypes</h3>
+        
+        <div class="archetype-item">
+            <div class="item-title">Pirate Prince</div>
+            <div class="item-meta">Tier 2</div>
+            <div class="item-description">
+                <strong>Maniacal Narcissist:</strong> Pirate Princesses are extremely proud and willing to sacrifice everything in their pursuits. The Pirate Princess gains +4 bonus dice to [PLACEHOLDER SKILL, CONFIRM]. If the Pirate Princess ever fails a skill test with the selected skill, it must pass a DN 4 Willpower test or attempt the test again. If unable to successfully complete the failed test, the humiliated Pirate Princess becomes Hindered for the scene, except for Intimidation interaction attacks which gain +2 bonus dice.
+            </div>
+        </div>
+        
+        <div class="archetype-item">
+            <div class="item-title"><span class="strikethrough">Commissar</span> Alpha Reaver</div>
+            <div class="item-meta">Tier 3</div>
+            <div class="item-description">
+                <strong>Fearsome Respect:</strong> You and any allies within 15 meters of you that you can see may add +8 bonus dice to Resolve tests. You add +8 bonus dice to any Intimidation tests, including Interaction Attacks.
+            </div>
+        </div>
+        
+        <div class="archetype-item">
+            <div class="item-title">Lylathia's Champion</div>
+            <div class="item-meta">Tier 4</div>
+            <div class="item-description">
+                <strong>Mark of Lylathia:</strong> Gain the Slaanesh keyword.<br><br>
+                <strong>True Faith:</strong> You gain 1 Faith and can now purchase Faith talents, replacing any effect keywords with their opposite; Imperium becomes Chaos, Chaos becomes Imperium, and any mention of The Emperor is replaced with Lylathia.<br><br>
+                Gain the <strong>Hand of <span class="strikethrough">The Emperor</span> Lylathia</strong> talent.<br><br>
+                Gain the <strong>Acute Senses</strong> talent.<br><br>
+                Gain the <strong>Wyrdling</strong> mutation. If you already have it, you instead gain the Phantom Body power and the Malefic Invitation power, though you can only use Malefic to invite Slaanesh daemons.<br><br>
+                <strong>Aspirant's Brand:</strong> You gain a Witchbrand on your body, visible only to those who share your Faith. This counts as a Symbol of Authority.
+            </div>
+        </div>
+    </div>
+
+    <!-- TALENTS -->
+    <div class="section">
+        <h3 class="section-title">Talents</h3>
+        
+        <div class="talent-item">
+            <div class="item-title">Bombardment</div>
+            <div class="item-description">
+                Once per session, deal 20+8 damage to all targets within 40 meters of the target.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Fast Draw</div>
+            <div class="item-description">
+                Draw a weapon as a Free Action or Reaction. In combat, any attacks you make against enemies who have not yet taken a turn gain +8 bonus dice to the attack test.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Perplexingly Persuasive</div>
+            <div class="item-description">
+                Persuasion interaction attacks to Hinder apply -2 instead of -1 at base, and each Exalted Icon is worth -2 instead of -1.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Supreme Presence (Persuasion)</div>
+            <div class="item-description">
+                Persuasion interaction attacks may either affect 9 targets or an entire Mob of Troops.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Enviable Grace</div>
+            <div class="item-description">
+                Difficult terrain does not reduce speed. Fall Back is now a Move. Immune to Staggered. No restrictions on replacement Movement options when you remove the Prone Condition as a Free Action. +Double Rank bonus dice to remove restrained. May be able to insert yourself into otherwise impassable spaces.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Deflect Shot</div>
+            <div class="item-description">
+                The Parry trait applies to ranged attacks with Powerfield and Force weapons. Enemies hit themselves in case of a miss with a complication. Has no effect against area effect weapons.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Inspired Blessing</div>
+            <div class="item-description">
+                +1 Faith. As a Combat Action, spend 1 Faith to restore 1d3+8 Shock to you and Chaos allies within 15+Double Rank meters.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Hand of Lylathia (Granted by Lylathia's Champion)</div>
+            <div class="item-description">
+                +1 Faith. As a Reflexive Action, spend 1 faith to double the speed of a Chaos character within hearing range.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Acute Sense (Granted by Lylathia's Champion)</div>
+            <div class="item-description">
+                You gain +4 dice to Awareness tests based on placeholder sense.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Whatever The Cost</div>
+            <div class="item-description">
+                You gain 2 Icons for every point of Wealth you spend on Requisition Tests, instead of the usual 1. However, if you roll a Complication on a Requisition Test you lose 2 Wealth instead of the usual 1.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Fashionista</div>
+            <div class="item-description">
+                When requisitioning clothing: For a single mission gain bonus dice on social Skill Tests equal to the Rarity of the Clothing.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Deductive Genius</div>
+            <div class="item-description">
+                Spend 1 Glory at any time for a clue on the fastest way to proceed with your current mission.
+            </div>
+        </div>
+        
+        <div class="talent-item">
+            <div class="item-title">Mark of Slaanesh (Alternative)</div>
+            <div class="item-description">
+                You gain +1 Influence and once per game session you may reroll an Influence or Persuasion test as if you had spent a Wrath. Also, gain the Wyrdling mutation.
+            </div>
+        </div>
+    </div>
+
+    <!-- MUTATIONS -->
+    <div class="section">
+        <h3 class="section-title">Mutations</h3>
+        
+        <div class="mutation-item">
+            <div class="item-title">Wyrdling</div>
+            <div class="item-description">
+                Gain the Psyker keyword and one Minor Psychic Power of the GM's choice.
+            </div>
+        </div>
+    </div>
+
+    <!-- PSYCHIC POWERS -->
+    <div class="section">
+        <h3 class="section-title">Psychic Powers</h3>
+        
+        <div class="power-item">
+            <div class="item-title">Compel</div>
+            <div class="item-meta">DN: 5 | Activation: Simple Action | Duration: 1 Round | Range: 5 meters</div>
+            <div class="item-description">
+                <strong>Effect:</strong> You implant a simple command in the mind of a nearby creature. This action must be short, simple, and obvious, such as "drop the weapon", "open the door", or "push him." Suggestions cannot make a creature perform an action they are simply incapable of performing, such as making a dog work a computer. The target creature must successfully pass a DN 4 Willpower test or is compelled to obey.<br><br>
+                <strong>Potency:</strong><br>
+                [1] +1 DN to the Willpower test to resist.<br>
+                [2] +1 Round duration.
+            </div>
+        </div>
+        
+        <div class="power-item">
+            <div class="item-title">Psyniscience</div>
+            <div class="item-meta">DN: 3 | Activation: Free Action | Duration: Instant | Range: 50 meters</div>
+            <div class="item-description">
+                <strong>Effect:</strong> You can sense the presence of the warp by pressing in against the material world. Existing or imminent distortions of the barrier between Materium and Immaterium in your immediate presence may betray themselves in the flicker of shadows, a brief chill on the flesh, or in a thousand other ways. You can attempt to detect the presence of Warp Phenomena within range and line of sight, including sustained psychic powers, psychic powers being activated, and similar effects as decided by the GM. This won't show the source of any such phenomenon, only that it is present within the restrictions, nor does it detect any Psykers. It does, however, provide enough information to activate Deny the Witch. If you attempt to activate this power and fail, the mysteries of the warp assail your mind. You are automatically under the effects of Fear. As it is not considered a psychic power, Psyniscience can't trigger the Perils of the Warp.
+            </div>
+        </div>
+        
+        <div class="power-item">
+            <div class="item-title">Deny The Witch</div>
+            <div class="item-meta">DN: 2+the DN of the psychic power you are trying to deny | Activation: Action* | Duration: Instant | Range: 50m</div>
+            <div class="item-description">
+                <strong>Effect:</strong> You can unravel another psyker's attempt to manipulate the Warp. All Psykers can attempt to prevent the activation of a psychic power within range, or nullify an already active Sustained- or Timed- duration power. You must be aware that a power is being used in order to Deny the Witch. If the power you are trying to deny has increased potency from shifting an Exalted Icon, the DN is increased by +1 for each Exalted Icon shifted. Unlike other Actions, this can be used to deny a power occuring before your Turn, but this uses your Combat Action for the Round. If you have already used your Action, then you can't Deny the Witch.
+            </div>
+        </div>
+        
+        <div class="power-item">
+            <div class="item-title">Vision of Excess</div>
+            <div class="item-meta">DN: 5 | Activation: Full-Round Action | Duration: Sustained | Range: Touch</div>
+            <div class="item-description">
+                <strong>Effect:</strong> With a caress and a whisper, you share a vision of the world as perceived by Lylathia's faithful, with all sensory perception elevated to its lurid extreme. The target gains 1 Corruption, and whilst this power is sustained, they gain +6 bonus dice on Awareness and Insight tests. Exalted Icons for these tests may be Shifted for insights beyond the scope of human senses, perhaps allowing the creature to smell lies, hear colors, or taste an incoming ambush. Complications subject the target to sensory overload, inflicting 1d3 Shock in addition to the usual effect of the complication. This FUCKS YOUR BRAIN UP and the normal world is forever drab and depressing in comparison.<br><br>
+                <strong>Potency:</strong><br>
+                [1] +1 bonus dice on Awareness and Insight tests.<br>
+                [1] Activation reduced to an Action.
+            </div>
+        </div>
+    </div>
+
+    <!-- GIFTS OF THE GODS -->
+    <div class="section">
+        <h3 class="section-title">Gifts of the Gods</h3>
+        
+        <div class="gift-item">
+            <div class="item-title">Gift of Slaanesh</div>
+            <div class="item-description">
+                Whenever you gain a Glory from rolling a Wrath Critical, you gain 1 additional Glory.
+            </div>
+        </div>
+        
+        <div class="gift-item">
+            <div class="item-title">Pain is Pleasure</div>
+            <div class="item-description">
+                Whenever you inflict a Wound on an enemy, you may spend 1 Glory to immediately make an Interaction Attack with Deception or Persuasion.
+            </div>
+        </div>
+        
+        <div class="gift-item">
+            <div class="item-title">Unforgettable</div>
+            <div class="item-description">
+                The conditions imposed by your Interaction Attacks last twice as long.
+            </div>
+        </div>
+        
+        <div class="gift-item">
+            <div class="item-title">Lord of Excess</div>
+            <div class="item-description">
+                When you gain Glory in excess of your max, it isn't wasted until the end of the Round.
+            </div>
+        </div>
+        
+        <div class="gift-item">
+            <div class="item-title">Sweet Agony</div>
+            <div class="item-description">
+                All attacks you make gain the <span class="tooltip underline-trait">Agonizing<span class="tooltiptext">Attacks also deal as much Shock as Wounds taken. Granted by the Sweet Agony gift.</span></span> trait.
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
