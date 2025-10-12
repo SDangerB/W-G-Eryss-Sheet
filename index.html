@@ -2,6 +2,7 @@
     let currentArmor = null;
     let currentShield = null;
     let baseDefense = 3;
+    let baseResilience = 4;
     let baseSpeed = 6;
 
     function changeWounds(delta) {
@@ -57,47 +58,66 @@
     function updateDefenseDisplay() {
         const defenseDisplay = document.getElementById('defense-display');
         const defenseNote = document.getElementById('defense-note');
-        
+        const resilienceDisplay = document.getElementById('resilience-display');
+        const resilienceNote = document.getElementById('resilience-note');
+
         let totalDefense = baseDefense;
-        let noteText = '';
-        
-        // Get armor values
-        let armorValue = 0;
+        let totalResilience = baseResilience;
+        let defenseText = '';
+        let resilienceText = '';
+
+        // Armor values
+        let armorResilience = 0;
         let armorName = '';
         if (currentArmor === 'sorotias') {
-            armorValue = 5;
+            armorResilience = 5;
             armorName = 'Sorotias Power Armor';
         } else if (currentArmor === 'bodyglove') {
-            armorValue = 2;
+            armorResilience = 2;
             armorName = 'Bodyglove';
         }
-        
-        // Get shield values
-        let shieldValue = 0;
+
+        // Shield values
+        let shieldDefense = 0;
+        let shieldResilience = 0;
         let shieldName = '';
         if (currentShield === 'placeholder1') {
-            shieldValue = 1;
+            shieldDefense = 1;
+            shieldResilience = 1;
             shieldName = 'Placeholder Shield';
         } else if (currentShield === 'placeholder2') {
-            shieldValue = 3;
+            shieldDefense = 3;
+            shieldResilience = 3;
             shieldName = 'Second Placeholder Shield';
         }
-        
-        totalDefense += armorValue + shieldValue;
-        
-        // Build note text
-        if (currentArmor && currentShield) {
-            noteText = armorName + ' + ' + shieldName + ' equipped';
-        } else if (currentArmor) {
-            noteText = armorName + ' equipped';
-        } else if (currentShield) {
-            noteText = shieldName + ' equipped';
+
+        // Defense depends only on shield
+        totalDefense += shieldDefense;
+        // Resilience depends on both
+        totalResilience += armorResilience + shieldResilience;
+
+        // Defense note
+        if (currentShield) {
+            defenseText = shieldName + ' equipped';
         } else {
-            noteText = 'No armor/shield equipped';
+            defenseText = 'No shield equipped';
         }
-        
+
+        // Resilience note
+        if (!currentArmor && !currentShield) {
+            resilienceText = 'No armor or shield equipped';
+        } else if (currentArmor && currentShield) {
+            resilienceText = armorName + ' + ' + shieldName + ' equipped';
+        } else if (currentArmor) {
+            resilienceText = armorName + ' equipped';
+        } else if (currentShield) {
+            resilienceText = shieldName + ' equipped';
+        }
+
         defenseDisplay.textContent = totalDefense;
-        defenseNote.textContent = noteText;
+        defenseNote.textContent = defenseText;
+        resilienceDisplay.textContent = totalResilience;
+        resilienceNote.textContent = resilienceText;
     }
 
     function toggleArmor(armorId, armorValue) {
@@ -650,11 +670,12 @@
             <div class="stat-box">
                 <div class="stat-label">Defense</div>
                 <div class="stat-value" id="defense-display">3</div>
-                <div class="stat-note" id="defense-note">No armor/shield equipped</div>
+                <div class="stat-note" id="defense-note">No shield equipped.</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label">Resilience</div>
-                <div class="stat-value">4</div>
+                <div class="stat-value" id="resilience-display">4</div>
+                <div class="stat-note" id="resilience-note">No armor or shield equipped</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label">Determination</div>
@@ -723,8 +744,8 @@
             </div>
             <div class="skill-row tooltip">
                 <span class="skill-name">Awareness</span>
-                <span class="skill-values">3 | Int | <span class="skill-value-bold underlined">7/11/13</span></span>
-                <span class="tooltiptext">+4 when involving Placeholder (Lylathia's Champion Archetype)<br>+6 when involving Touch (Gossamer Flesh Mutation)</span>
+                <span class="skill-values">3 | Int | <span class="skill-value-bold underlined">7/17</span></span>
+                <span class="tooltiptext">+4 when involving Touch. (Lylathia's Champion Archetype)<br>+6 when involving Touch. (Gossamer Flesh Mutation)</span>
             </div>
             <div class="skill-row">
                 <span class="skill-name">Ballistic Skill</span>
@@ -993,7 +1014,7 @@
                 <button class="toggle-btn" id="armor-bodyglove" onclick="toggleArmor('bodyglove', 2)">Equip</button>
             </div>
             <div class="equipment-description">
-                Armored bodysuit.
+                Armored bodysuit, can be hidden under bulkier civilian clothing.
             </div>
         </div>
 
@@ -1024,7 +1045,7 @@
                 <span class="equipment-name">Shattercoil</span>
             </div>
             <div class="equipment-description">
-                Pirate frigate.
+                Modified Sword-Class Frigate. Crew of 26,000. Dorsal Laser Battery, Dorsal Broadside Omega-Threx Pattern Macro Cannons, Icebreaker Prow, Boarding Shots, Hex Torpedos, Pirate Boarding Crew (WS 6).
             </div>
         </div>
         
@@ -1060,7 +1081,7 @@
                 <span class="equipment-name">Icedrake-hide Cape</span>
             </div>
             <div class="equipment-description">
-                DRIP
+                DRIP :3
             </div>
         </div>
     </div>
@@ -1162,7 +1183,7 @@
         <div class="talent-item">
             <div class="item-title">Acute Sense (Granted by Lylathia's Champion)</div>
             <div class="item-description">
-                You gain +4 dice to Awareness tests based on placeholder sense.
+                You gain +4 dice to Awareness tests based on Touch.
             </div>
         </div>
         
@@ -1205,11 +1226,51 @@
                 Gain the Psyker keyword and one Minor Psychic Power of the GM's choice.
             </div>
         </div>
+
+        <div class="mutation-item">
+            <div class="item-title">Gossamer Flesh</div>
+            <div class="item-description">
+                Suffer -1 Resilience and get +6 bonus dice to all Awareness(Touch) tests. 
+                <br>All physical sensations are intense, sometimes overwhelming.
+            </div>
+        </div>
+
+        <div class="mutation-item">
+            <div class="item-title">E(rys)strous Cycle (YES REALLY)</div>
+            <div class="item-description">
+                You have been blessed with an Estrous Cycle, a period where your body is flushed by reproductive hormones. These cycles are widely variable in duration and frequency.
+                <br>Whenever you roll your Objective for a session, roll an additional die.
+                <br>On a 1 or 2, you are in the Estrous Cycle and you ignore the objective you would otherwise have gotten and replace it with; "Get bred."
+            </div>
+        </div>
     </div>
 
     <!-- PSYCHIC POWERS -->
     <div class="section">
         <h3 class="section-title">Psychic Powers</h3>
+
+        <div class="power-item">
+            <div class="item-title">Vision of Excess</div>
+            <div class="item-meta">DN: 5 | Activation: Full-Round Action | Duration: Sustained | Range: Touch</div>
+            <div class="item-description">
+                <strong>Effect:</strong> With a caress and a whisper, you share a vision of the world as perceived by Lylathia's faithful, with all sensory perception elevated to its lurid extreme. The target gains 1 Corruption, and whilst this power is sustained, they gain +6 bonus dice on Awareness and Insight tests. Exalted Icons for these tests may be Shifted for insights beyond the scope of human senses, perhaps allowing the creature to smell lies, hear colors, or taste an incoming ambush. Complications subject the target to sensory overload, inflicting 1d3 Shock in addition to the usual effect of the complication. This FUCKS YOUR BRAIN UP and the normal world is forever drab and depressing in comparison.<br><br>
+                <strong>Potency:</strong><br>
+                [1] +1 bonus dice on Awareness and Insight tests.<br>
+                [1] Activation reduced to an Action.
+            </div>
+        </div>
+
+        <div class="power-item">
+            <div class="item-title">Phantom Form</div>
+            <div class="item-meta">DN: 7 | Activation: Action | Duration: Sustained | Range: Self</div>
+            <div class="item-description">
+                <strong>Effect:</strong> The light surrounding you grows dim, then so does your body, stepping into the realm of dreams. While you sustain this power, you can pass freely through solid objects of any kind, though your Speed is reduced by half. In effect, you become a phantom. While you can both see and be seen by the real world, you cannot physically interact with it in any way. You suffer 1 Shock each round you sustain the power.<br><br>
+                <strong>Potency:</strong><br>
+                [1] Your Speed is normal.<br>
+                [1] Your speech can be heard.<br>````````````````
+                [3] You can interact with objects as a Full Round Action.
+            </div>
+        </div>
         
         <div class="power-item">
             <div class="item-title">Compel</div>
@@ -1235,17 +1296,6 @@
             <div class="item-meta">DN: 2+the DN of the psychic power you are trying to deny | Activation: Action* | Duration: Instant | Range: 50m</div>
             <div class="item-description">
                 <strong>Effect:</strong> You can unravel another psyker's attempt to manipulate the Warp. All Psykers can attempt to prevent the activation of a psychic power within range, or nullify an already active Sustained- or Timed- duration power. You must be aware that a power is being used in order to Deny the Witch. If the power you are trying to deny has increased potency from shifting an Exalted Icon, the DN is increased by +1 for each Exalted Icon shifted. Unlike other Actions, this can be used to deny a power occuring before your Turn, but this uses your Combat Action for the Round. If you have already used your Action, then you can't Deny the Witch.
-            </div>
-        </div>
-        
-        <div class="power-item">
-            <div class="item-title">Vision of Excess</div>
-            <div class="item-meta">DN: 5 | Activation: Full-Round Action | Duration: Sustained | Range: Touch</div>
-            <div class="item-description">
-                <strong>Effect:</strong> With a caress and a whisper, you share a vision of the world as perceived by Lylathia's faithful, with all sensory perception elevated to its lurid extreme. The target gains 1 Corruption, and whilst this power is sustained, they gain +6 bonus dice on Awareness and Insight tests. Exalted Icons for these tests may be Shifted for insights beyond the scope of human senses, perhaps allowing the creature to smell lies, hear colors, or taste an incoming ambush. Complications subject the target to sensory overload, inflicting 1d3 Shock in addition to the usual effect of the complication. This FUCKS YOUR BRAIN UP and the normal world is forever drab and depressing in comparison.<br><br>
-                <strong>Potency:</strong><br>
-                [1] +1 bonus dice on Awareness and Insight tests.<br>
-                [1] Activation reduced to an Action.
             </div>
         </div>
     </div>
@@ -1292,4 +1342,3 @@
 </div>
 </body>
 </html>
-
